@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using lab3.Data;
 using lab3.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace lab3.Repositories
 {
@@ -8,11 +9,13 @@ namespace lab3.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<SongRepository> _logger;
+        private readonly IConfiguration _configuration;
 
-        public SongRepository(AppDbContext context, ILogger<SongRepository> logger)
+        public SongRepository(AppDbContext context, ILogger<SongRepository> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<Song>> GetAllAsync()
@@ -36,6 +39,17 @@ namespace lab3.Repositories
 
         public async Task AddAsync(Song song)
         {
+            int maxDuration = _configuration.GetValue<int>("SongSettings:MaxDurationSeconds");
+
+            if (song.DurationSeconds > maxDuration)
+            {
+                var errorMsg = $"Відхилено. Пісня '{song.Title}' занадто довга ({song.DurationSeconds} с). Ліміт: {maxDuration} с.";
+
+                _logger.LogWarning(errorMsg);
+
+                throw new Exception(errorMsg);
+            }
+
             _logger.LogInformation($"Спроба додати пісню '{song.Title}'");
 
             try
@@ -47,8 +61,7 @@ namespace lab3.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Помилка при додаванні пісні '{song.Title}'.");
-
-                throw; 
+                throw;
             }
         }
 
@@ -66,7 +79,7 @@ namespace lab3.Repositories
                 _context.Songs.Remove(song);
                 await _context.SaveChangesAsync();
             }
-            else 
+            else
             {
                 _logger.LogWarning($"Спроба видалити неіснуючу пісню ID: {id}");
             }

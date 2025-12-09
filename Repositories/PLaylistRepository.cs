@@ -31,7 +31,7 @@ namespace lab3.Repositories
                 playlists = await _context.Playlists.ToListAsync();
 
                 var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(15));
 
                 _cache.Set(cacheKey, playlists, cacheOptions);
             }
