@@ -21,6 +21,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<SongValidator>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
